@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quà tặng 20/10 💐</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;600;700&display=swap&subset=vietnamese" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(1200px 700px at 50% 110%, #7a1f4e 0%, transparent 60%),
+      radial-gradient(900px 600px at 15% 10%, #4b1a6b 0%, transparent 60%),
+      linear-gradient(180deg, #1a0b2e 0%, #3a1248 55%, #6a1b52 100%);
+    font-family: 'Quicksand', sans-serif; color: #fff;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+  /* ===== Lớp phủ dùng chung ===== */
+  .overlay {
+    position: fixed; inset: 0; z-index: 20; display: flex;
+    align-items: center; justify-content: center; padding: 20px;
+    transition: opacity .9s ease, visibility .9s;
+  }
+  .overlay.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  /* ===== Form ===== */
+  .card {
+    width: min(440px, 100%); padding: 28px 26px 24px; border-radius: 26px;
+    background: rgba(255,255,255,.09); backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.22);
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    max-height: 94vh; overflow-y: auto;
+  }
+  .card h2 {
+    font-family: 'Dancing Script', cursive; font-size: 36px; text-align: center;
+    background: linear-gradient(90deg, #ffd1e3, #ff7aa8, #ffe0a8);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .card .sub { text-align: center; font-size: 13px; color: #ffcadd; margin: 4px 0 18px; }
+  label { display: block; font-size: 16px; font-weight: 600; text-align: center; color: #ffd3e3; margin: 0 0 10px; }
+  label small { text-transform: none; letter-spacing: 0; opacity: .7; }
+  input, textarea {
+    width: 100%; padding: 12px 14px; border-radius: 14px; font: inherit; font-size: 15px;
+    background: rgba(255,255,255,.12); color: #fff; outline: none;
+    border: 1px solid rgba(255,255,255,.2); transition: border-color .2s, background .2s;
+    user-select: text;
+  }
+  input::placeholder, textarea::placeholder { color: rgba(255,255,255,.4); }
+  input:focus, textarea:focus { border-color: #ff7aa8; background: rgba(255,255,255,.18); }
+  input[type=date] { color-scheme: dark; }
+  input.shake { border-color: #ff5c7a; animation: shake .4s; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+  textarea { resize: none; height: 96px; line-height: 1.5; }
+  .btn {
+    width: 100%; margin-top: 20px; padding: 14px; border: 0; border-radius: 16px; cursor: pointer;
+    font: 700 16px 'Quicksand', sans-serif; color: #fff;
+    background: linear-gradient(135deg, #ff6fa0, #ff4d86 55%, #ff8a5c);
+    box-shadow: 0 10px 28px rgba(255, 77, 134, .45); transition: transform .15s;
+  }
+  .btn:active { transform: scale(.97); }
+  .err { color: #ffb3b3; font-size: 13px; margin-top: 10px; text-align: center; min-height: 1em; }
+
+  /* ===== Phong bì ===== */
+  .env-wrap { text-align: center; cursor: pointer; }
+  .env-title { font-family: 'Dancing Script', cursive; font-size: clamp(30px, 7vw, 46px); margin-bottom: 26px;
+    background: linear-gradient(90deg, #ffd1e3, #ff7aa8, #ffe0a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .env { position: relative; width: min(300px, 78vw); height: min(200px, 52vw); margin: 0 auto; perspective: 900px;
+    animation: bob 3s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  .env .back { position: absolute; inset: 0; border-radius: 10px; background: linear-gradient(160deg, #ffb6cf, #ff8fb1);
+    box-shadow: 0 18px 45px rgba(0,0,0,.45); }
+  .env .letter { position: absolute; left: 7%; right: 7%; top: 8%; height: 80%; border-radius: 6px; background: #fff7fa;
+    transition: transform .9s .35s ease; display: flex; align-items: center; justify-content: center;
+    font-family: 'Dancing Script', cursive; font-size: 26px; color: #d6366f; }
+  .env .front { position: absolute; inset: 0; border-radius: 10px; pointer-events: none;
+    background:
+      linear-gradient(to top right, transparent 49.5%, #ff9dbd 50%) left / 50% 100% no-repeat,
+      linear-gradient(to top left, transparent 49.5%, #ff9dbd 50%) right / 50% 100% no-repeat; }
+  .env .front::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 58%;
+    background: linear-gradient(180deg, #ff93b6, #ff7aa6); clip-path: polygon(0 100%, 50% 8%, 100% 100%); border-radius: 0 0 10px 10px; }
+  .env .flap { position: absolute; left: 0; right: 0; top: 0; height: 58%; transform-origin: top; transition: transform .7s ease, z-index 0s .35s;
+    background: linear-gradient(180deg, #ff6f9f, #ff8fb1); clip-path: polygon(0 0, 100% 0, 50% 100%); z-index: 3; }
+  .env .seal { position: absolute; left: 50%; top: 52%; width: 46px; height: 46px; margin: -23px 0 0 -23px; z-index: 4;
+    display: grid; place-items: center; font-size: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff7b9c, #c4194f); box-shadow: 0 4px 12px rgba(0,0,0,.4); transition: opacity .3s; }
+  .env-wrap.open .flap { transform: rotateX(180deg); }
+  .env-wrap.open .seal { opacity: 0; }
+  .env-wrap.open .letter { transform: translateY(-62%); }
+  .env-tip { margin-top: 28px; font-size: 14px; color: #ffcadd; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+
+  /* ===== Trang quà ===== */
+  .text { position: fixed; left: 0; right: 0; top: 6vh; text-align: center; pointer-events: none; padding: 0 5vw; z-index: 5; }
+  .text > * { opacity: 0; }
+  .text.show .small { animation: fadeUp 1.4s .3s forwards; }
+  .text.show h1 { animation: fadeUp 1.6s .8s forwards; }
+  .text.show .love { animation: fadeUp 1.4s 1.5s forwards; }
+  .text.show .msg { animation: fadeUp 1.4s 1.9s forwards; }
+  .small { font-size: clamp(13px, 2.2vw, 18px); letter-spacing: .3em; text-transform: uppercase; color: #ffd3e3; }
+  .name { font-family: 'Dancing Script', cursive; font-size: clamp(34px, 7vw, 64px); line-height: 1.1; margin-top: 6px; color: #fff;
+    text-shadow: 0 0 24px rgba(255,120,170,.8); }
+  h1 { font-family: 'Dancing Script', cursive; font-size: clamp(36px, 7.5vw, 84px); line-height: 1.1; margin: .1em 0;
+    background: linear-gradient(90deg, #ffd1e3, #ff7aa8 40%, #ffe0a8 80%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 18px rgba(255, 90, 150, .55)); }
+  .love { font-size: clamp(13px, 2.2vw, 17px); color: #ffb3cd; margin: 4px 0 8px; font-weight: 600; }
+  .msg { font-size: clamp(14px, 2.3vw, 19px); max-width: 620px; margin: 0 auto; line-height: 1.7; color: #ffe7f0; min-height: 3.4em; white-space: pre-line; }
+  .hint { position: fixed; bottom: 2vh; left: 0; right: 0; text-align: center; font-size: 13px; color: #ffc4da; pointer-events: none; opacity: 0; z-index: 5; }
+  .hint.show { animation: fadeUp 1.2s 4s forwards, pulse 2.6s 5s infinite; }
+  .tools { position: fixed; top: 12px; right: 12px; z-index: 6; display: none; }
+  .tools.show { display: flex; gap: 8px; }
+  .tools button { border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.12); backdrop-filter: blur(8px); color: #fff;
+    padding: 9px 14px; border-radius: 999px; font: 600 13px 'Quicksand', sans-serif; cursor: pointer; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div class="text" id="text">
+  <div class="small">Gửi tặng</div>
+  <div class="name" id="gName"></div>
+  <h1>Chúc mừng 20/10</h1>
+  <div class="love" id="gLove"></div>
+  <div class="msg" id="gMsg"></div>
+</div>
+<div class="hint" id="hint">✿ Chạm vào màn hình để tặng thêm hoa ✿</div>
+
+<!-- FORM -->
+<div class="overlay" id="formOv">
+  <div class="card" id="form">
+    <label for="fTo">Nhập tên em eiii</label>
+    <input id="fTo" maxlength="40" autofocus autocomplete="off" enterkeyhint="go">
+
+    <button class="btn" type="button" id="okBtn">Xác nhận</button>
+    <div class="err" id="err"></div>
+  </div>
+</div>
+
+<!-- PHONG BÌ -->
+<div class="overlay hide" id="envOv">
+  <div class="env-wrap" id="envWrap">
+    <div class="env-title" id="envTitle"></div>
+    <div class="env">
+      <div class="back"></div>
+      <div class="letter">20/10 💌</div>
+      <div class="front"></div>
+      <div class="flap"></div>
+      <div class="seal">❤</div>
+    </div>
+    <div class="env-tip">Chạm để mở phong bì</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const DEFAULT_MSG = 'Chúc em luôn xinh đẹp, rạng rỡ và thật hạnh phúc. Cảm ơn em vì đã dịu dàng, mạnh mẽ và làm cho mỗi ngày của anh đẹp hơn rất nhiều 💖';
+
+  let data = null, fromLink = false, started = false;
+
+  // ---------- Đọc dữ liệu từ link ----------
+  const q = new URLSearchParams(location.search);
+
+  function buildLink() {
+    const p = new URLSearchParams();
+    p.set('to', data.to);
+    if (data.from) p.set('from', data.from);
+    if (data.since) p.set('since', data.since);
+    if (data.msg) p.set('msg', data.msg);
+    return location.origin + location.pathname + '?' + p.toString();
+  }
+
+  // ---------- Form ----------
+  function submitName() {
+    const typed = $('fTo').value.trim().toLowerCase().replace(/\s+/g, ' ');
+    if (typed !== 'em iu') {
+      const inp = $('fTo');
+      inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+      inp.select();
+      $('err').textContent = 'Chỉ được phép nhập là em iu 💢';
+      return;
+    }
+    $('err').textContent = '';
+    const to = 'Em iu';
+    data = { to, from: '', since: '', msg: DEFAULT_MSG };
+    showEnvelope();
+  }
+  $('okBtn').addEventListener('click', submitName);
+  $('fTo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitName(); } });
+
+  function showEnvelope() {
+    $('formOv').classList.add('hide');
+    $('envTitle').textContent = 'Có quà dành cho ' + data.to;
+    $('envWrap').classList.remove('open');
+    setTimeout(() => $('envOv').classList.remove('hide'), 400);
+  }
+
+  // ---------- Mở phong bì ----------
+  $('envWrap').addEventListener('click', () => {
+    if ($('envWrap').classList.contains('open')) return;
+    $('envWrap').classList.add('open');
+    setTimeout(() => { $('envOv').classList.add('hide'); startGift(); }, 1700);
+  });
+
+  // ---------- Khởi động từ link ----------
+  if (q.get('to')) {
+    fromLink = true;
+    data = { to: q.get('to'), from: q.get('from') || '', since: q.get('since') || '', msg: q.get('msg') || DEFAULT_MSG };
+    $('formOv').classList.add('hide');
+    showEnvelope();
+  }
+
+  // =====================  HOA  =====================
+  const cv = $('c'), ctx = cv.getContext('2d');
+  let W, H, DPR;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = innerWidth; H = innerHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  addEventListener('resize', resize); resize();
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  const easeOutBack = t => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+  const pick = a => a[(Math.random() * a.length) | 0];
+
+  const PALETTE = [
+    { h: 340, s: 85, l: 68 }, { h: 350, s: 90, l: 64 }, { h: 355, s: 82, l: 58 },
+    { h: 15, s: 90, l: 68 }, { h: 40, s: 95, l: 70 }, { h: 285, s: 60, l: 72 }, { h: 330, s: 30, l: 94 },
+  ];
+  const flowers = [], petals = [], hearts = [];
+
+  function makeFlower(bx, by, fx, fy, size, delay = 0) {
+    const dx = fx - bx;
+    return {
+      bx, by, fx, fy, cx: bx + dx * .15 + rand(-60, 60), cy: by + (fy - by) * .55, size,
+      color: pick(PALETTE), layers: 4 + ((Math.random() * 2) | 0), petals: 6 + ((Math.random() * 3) | 0),
+      rot: rand(0, 6.283), born: performance.now() + delay, grow: rand(1700, 2400), bloom: rand(1800, 2600), phase: rand(0, 6.28),
+      leaves: [.28, .48, .66].map(t => ({ t: t + rand(-.04, .04), side: Math.random() < .5 ? -1 : 1 })),
+    };
+  }
+
+  function bouquet() {
+    flowers.length = 0;
+    const cx = W / 2, base = H + 20, bs = Math.min(W, H) * .085, N = 11;
+    for (let i = 0; i < N; i++) {
+      const k = i / (N - 1), ang = (k - .5) * 1.5 + rand(-.08, .08);
+      const len = Math.min(H * .62, 520) * (.62 + .38 * Math.cos((k - .5) * 2.2)) * rand(.9, 1.05);
+      flowers.push(makeFlower(cx + rand(-18, 18), base, cx + Math.sin(ang) * len, base - Math.cos(ang) * len, bs * rand(.85, 1.25), 300 + i * 260));
+    }
+    for (let i = 0; i < 4; i++) {
+      const ang = rand(-.7, .7), len = Math.min(H * .5, 430) * rand(.75, 1);
+      flowers.push(makeFlower(cx, base, cx + Math.sin(ang) * len, base - Math.cos(ang) * len, bs * .8, 250 + i * 400));
+    }
+    flowers.sort((a, b) => a.fy - b.fy);
+  }
+
+  function stemPoint(f, t, sw) {
+    const u = 1 - t, fx = f.fx + sw, cx = f.cx + sw * .4;
+    return { x: u * u * f.bx + 2 * u * t * cx + t * t * fx, y: u * u * f.by + 2 * u * t * f.cy + t * t * f.fy };
+  }
+  function drawLeaf(x, y, ang, len, a) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    const g = ctx.createLinearGradient(0, 0, len, 0);
+    g.addColorStop(0, `rgba(40,150,90,${a})`); g.addColorStop(1, `rgba(120,220,140,${a})`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(len * .25, -len * .38, len * .7, -len * .3, len, 0);
+    ctx.bezierCurveTo(len * .7, len * .3, len * .25, len * .38, 0, 0); ctx.fill(); ctx.restore();
+  }
+  function drawPetal(len, w, light, c, alpha) {
+    const g = ctx.createLinearGradient(0, 0, 0, -len);
+    g.addColorStop(0, `hsla(${c.h},${c.s}%,${Math.max(20, c.l - 24 + light)}%,${alpha})`);
+    g.addColorStop(.6, `hsla(${c.h},${c.s}%,${c.l + light}%,${alpha})`);
+    g.addColorStop(1, `hsla(${c.h},${c.s - 10}%,${Math.min(96, c.l + 16 + light)}%,${alpha})`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-w, -len * .22, -w * .95, -len * .92, 0, -len);
+    ctx.bezierCurveTo(w * .95, -len * .92, w, -len * .22, 0, 0); ctx.fill();
+    ctx.strokeStyle = `rgba(255,255,255,${.18 * alpha})`; ctx.lineWidth = .8; ctx.stroke();
+  }
+  function drawHead(f, x, y, b, time) {
+    const R = f.size * (.35 + .65 * b);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(f.rot + Math.sin(time / 2400 + f.phase) * .05);
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 2);
+    glow.addColorStop(0, `hsla(${f.color.h},90%,70%,${.28 * b})`); glow.addColorStop(1, 'hsla(0,0%,0%,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, R * 2, 0, 6.283); ctx.fill();
+    for (let i = 0; i < f.layers; i++) {
+      const sc = 1 - i * .19, n = f.petals + (i % 2), len = R * sc * (.55 + .45 * b), w = len * (.42 + .22 * b);
+      const off = i * (Math.PI / n) + i * .3;
+      for (let k = 0; k < n; k++) {
+        ctx.save(); ctx.rotate(off + (k / n) * 6.283); ctx.translate(0, -R * .04 * (1 - b));
+        drawPetal(len, w, i * 3, f.color, .96); ctx.restore();
+      }
+    }
+    const cr = R * .14 * (.6 + .4 * b), cg = ctx.createRadialGradient(0, 0, 0, 0, 0, cr * 1.6);
+    cg.addColorStop(0, '#fff4b0'); cg.addColorStop(1, '#f2a93b');
+    ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(0, 0, cr, 0, 6.283); ctx.fill(); ctx.restore();
+  }
+  function drawFlower(f, time) {
+    const age = time - f.born; if (age < 0) return;
+    const g = easeOutCubic(clamp(age / f.grow)), b = clamp((age - f.grow * .75) / f.bloom);
+    const bloom = b > 0 ? easeOutBack(b) : 0, sway = Math.sin(time / 1700 + f.phase) * f.size * .12 * g;
+    ctx.lineCap = 'round'; ctx.lineWidth = Math.max(2, f.size * .075);
+    const sg = ctx.createLinearGradient(f.bx, f.by, f.fx, f.fy);
+    sg.addColorStop(0, '#1f7a4a'); sg.addColorStop(1, '#6fd08c'); ctx.strokeStyle = sg;
+    ctx.beginPath();
+    for (let i = 0; i <= 40; i++) { const p = stemPoint(f, (i / 40) * g, sway); i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y); }
+    ctx.stroke();
+    for (const lf of f.leaves) {
+      const a = clamp((g - lf.t) * 5); if (a <= 0) continue;
+      const p = stemPoint(f, lf.t, sway), p2 = stemPoint(f, lf.t + .02, sway);
+      drawLeaf(p.x, p.y, Math.atan2(p2.y - p.y, p2.x - p.x) + lf.side * .9, f.size * .75 * a, a);
+    }
+    const head = stemPoint(f, g, sway);
+    if (g > .85) drawHead(f, head.x, head.y, Math.max(clamp((g - .85) / .15) * .05, bloom), time);
+  }
+
+  function spawnPetal(x, y, burst) {
+    petals.push({ x: x ?? rand(-20, W + 20), y: y ?? rand(-40, -10), vx: burst ? rand(-2.5, 2.5) : rand(-.4, .6),
+      vy: burst ? rand(-3.5, -.5) : rand(.5, 1.4), rot: rand(0, 6.28), vr: rand(-.03, .03),
+      size: rand(7, 15), c: pick(PALETTE), ph: rand(0, 6.28), life: burst ? 1 : 2 });
+  }
+  function drawHeart(h) {
+    const s = h.size; ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(h.rot); ctx.globalAlpha = h.a;
+    ctx.fillStyle = `hsl(${h.hue},90%,68%)`; ctx.beginPath();
+    ctx.moveTo(0, s * .35); ctx.bezierCurveTo(-s, -s * .3, -s * .5, -s, 0, -s * .45);
+    ctx.bezierCurveTo(s * .5, -s, s, -s * .3, 0, s * .35); ctx.fill(); ctx.restore();
+  }
+
+  const bokeh = Array.from({ length: 28 }, () => ({ x: rand(0, 1), y: rand(0, 1), r: rand(6, 26), s: rand(.00002, .00008), a: rand(.05, .16), h: rand(300, 360) }));
+
+  function plant(x, y) {
+    if (!started) return;
+    const size = Math.min(W, H) * rand(.06, .1), f = makeFlower(x + rand(-80, 80), H + 20, x, y, size);
+    f.born = performance.now(); f.grow = 1100; f.bloom = 1500; flowers.push(f);
+    for (let i = 0; i < 12; i++) spawnPetal(x, y, true);
+    for (let i = 0; i < 4; i++) hearts.push({ x, y, vx: rand(-1, 1), vy: rand(-2.2, -1), size: rand(7, 13), rot: rand(-.4, .4), a: 1, hue: rand(330, 355) });
+  }
+  addEventListener('pointerdown', e => { if (!e.target.closest('.overlay, .tools')) plant(e.clientX, e.clientY); });
+
+  // ---------- Bắt đầu màn quà ----------
+  function startGift() {
+    started = true;
+    bouquet();
+    $('gName').textContent = data.to;
+    $('gMsg').textContent = '';
+    if (data.since) {
+      const days = Math.floor((Date.now() - new Date(data.since).getTime()) / 864e5);
+      $('gLove').textContent = days >= 0 ? `💗 Mình đã yêu nhau ${days.toLocaleString('vi-VN')} ngày 💗` : '';
+    } else $('gLove').textContent = '';
+    $('text').classList.add('show'); $('hint').classList.add('show');
+    const full = data.msg + (data.from ? '\n— ' + data.from : '');
+    let i = 0;
+    setTimeout(() => {
+      const t = setInterval(() => { $('gMsg').textContent = full.slice(0, ++i); if (i >= full.length) clearInterval(t); }, 40);
+    }, 2300);
+  }
+
+  // ---------- Vòng lặp ----------
+  let last = performance.now();
+  function frame(time) {
+    const dt = Math.min(50, time - last); last = time;
+    ctx.clearRect(0, 0, W, H);
+    for (const b of bokeh) {
+      b.y -= b.s * dt; if (b.y < -.05) { b.y = 1.05; b.x = Math.random(); }
+      const g = ctx.createRadialGradient(b.x * W, b.y * H, 0, b.x * W, b.y * H, b.r);
+      g.addColorStop(0, `hsla(${b.h},90%,80%,${b.a})`); g.addColorStop(1, 'hsla(0,0%,0%,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x * W, b.y * H, b.r, 0, 6.283); ctx.fill();
+    }
+    if (started) {
+      for (const f of flowers) drawFlower(f, time);
+      if (Math.random() < .12 && petals.length < 120) spawnPetal();
+      if (Math.random() < .03 && hearts.length < 25) hearts.push({ x: rand(0, W), y: H + 10, vx: rand(-.3, .3), vy: rand(-1.4, -.6), size: rand(6, 12), rot: rand(-.4, .4), a: .85, hue: rand(330, 355) });
+    }
+    for (let i = petals.length - 1; i >= 0; i--) {
+      const p = petals[i];
+      p.x += p.vx + Math.sin(time / 900 + p.ph) * .5; p.y += p.vy; p.vy += p.vy < 1.6 ? .02 : 0; p.rot += p.vr; p.ph += .05;
+      if (p.life < 1.99) p.life -= .004;
+      if (p.y > H + 20 || p.life <= 0) { petals.splice(i, 1); continue; }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.scale(1, .55 + .45 * Math.sin(p.ph));
+      ctx.globalAlpha = clamp(p.life); drawPetal(p.size, p.size * .5, 4, p.c, 1); ctx.restore();
+    }
+    for (let i = hearts.length - 1; i >= 0; i--) {
+      const h = hearts[i]; h.x += h.vx + Math.sin(time / 600 + i) * .3; h.y += h.vy; h.a -= .003;
+      if (h.a <= 0 || h.y < -20) { hearts.splice(i, 1); continue; }
+      drawHeart(h);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
