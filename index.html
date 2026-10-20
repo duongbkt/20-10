@@ -64,6 +64,25 @@
   .btn:active { transform: scale(.97); }
   .err { color: #ffb3b3; font-size: 13px; margin-top: 10px; text-align: center; min-height: 1em; }
 
+  /* ===== Thiệp tinh nghịch ===== */
+  .card-heart { font-size: 46px; text-align: center; animation: bob 2.4s ease-in-out infinite; }
+  .card-title { font-family: 'Dancing Script', cursive; font-size: 34px; text-align: center; margin: 4px 0 8px;
+    background: linear-gradient(90deg, #ffd1e3, #ff7aa8, #ffe0a8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .card-q { text-align: center; font-size: 17px; line-height: 1.55; color: #ffe7f0; margin: 6px 0 24px; min-height: 52px; }
+  .choices { display: flex; gap: 14px; justify-content: center; align-items: center; min-height: 64px; }
+  .pill { font: 700 16px 'Quicksand', sans-serif; border: 0; border-radius: 16px; padding: 13px 22px; cursor: pointer;
+    color: #fff; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .yes { background: linear-gradient(135deg, #ff6fa0, #ff4d86 55%, #ff8a5c); animation: glow 1.6s ease-in-out infinite;
+    transition: transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes glow { 0%,100% { box-shadow: 0 10px 28px rgba(255,77,134,.45); } 50% { box-shadow: 0 10px 42px rgba(255,77,134,.95); } }
+  .no { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .no.flying { position: fixed; z-index: 25; transition: left .28s cubic-bezier(.3,1.5,.5,1), top .28s cubic-bezier(.3,1.5,.5,1); }
+  .pop { position: fixed; z-index: 30; font-size: 22px; pointer-events: none; animation: pop 1.1s ease-out forwards; }
+  @keyframes pop {
+    from { transform: translate(-50%, -50%) scale(.5); opacity: 1; }
+    to   { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3); opacity: 0; }
+  }
+
   /* ===== Phong bì ===== */
   .env-wrap { text-align: center; cursor: pointer; }
   .env-title { font-family: 'Dancing Script', cursive; font-size: clamp(30px, 7vw, 46px); margin-bottom: 26px;
@@ -127,16 +146,17 @@
   <div class="love" id="gLove"></div>
   <div class="msg" id="gMsg"></div>
 </div>
-<div class="hint" id="hint">✿ Chạm vào màn hình để tặng thêm hoa ✿</div>
+<div class="hint" id="hint">✿ Chạm vào màn hình để thêm hoa ✿</div>
 
 <!-- FORM -->
 <div class="overlay" id="formOv">
   <div class="card" id="form">
-    <label for="fTo">Nhập tên em eiii</label>
-    <input id="fTo" maxlength="40" autofocus autocomplete="off" enterkeyhint="go">
-
-    <button class="btn" type="button" id="okBtn">Xác nhận</button>
-    <div class="err" id="err"></div>
+    <div class="card-heart">💌</div>
+    <div class="card-q" id="qText">Em có phải em iu không? 💕</div>
+    <div class="choices" id="choices">
+      <button class="pill yes" id="yesBtn" type="button">Phải 💕</button>
+      <button class="pill no" id="noBtn" type="button">Không 😝</button>
+    </div>
   </div>
 </div>
 
@@ -158,7 +178,7 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const DEFAULT_MSG = 'Chúc em luôn xinh đẹp, rạng rỡ và thật hạnh phúc. Cảm ơn em vì đã dịu dàng, mạnh mẽ và làm cho mỗi ngày của anh đẹp hơn rất nhiều 💖';
+  const DEFAULT_MSG = 'Chúc em 20/10 vui vẻ, luôn xinh và cười thật nhiều nhé 🌸 Quà nhỏ thôi, em xem cho vui 💖';
 
   let data = null, fromLink = false, started = false;
 
@@ -175,26 +195,61 @@
   }
 
   // ---------- Form ----------
-  function submitName() {
-    const typed = $('fTo').value.trim().toLowerCase().replace(/\s+/g, ' ');
-    if (typed !== 'em iu') {
-      const inp = $('fTo');
-      inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
-      inp.select();
-      $('err').textContent = 'Chỉ được phép nhập là em iu 💢';
-      return;
+  const yesBtn = $('yesBtn'), noBtn = $('noBtn'), qText = $('qText');
+  const NO_LINES = ['Không 😝', 'Bấm lại đi 😜', 'Hụt rồi 🙈', 'Không cho bấm đâu 😛', 'Nhanh tay lên 🏃', 'Chịu thua chưa? 😏', 'Bấm "Phải" đi 🥺'];
+  const Q_LINES = { 3: 'Chạy đâu cho thoát 😏', 6: 'Chỉ có một đáp án thôi 💕' };
+  let dodges = 0, lastDodge = 0;
+
+  function dodge() {
+    const now = Date.now();
+    if (now - lastDodge < 350) return;   // tránh né 2 lần khi vừa chạm vừa click
+    lastDodge = now;
+    dodges++;
+    noBtn.textContent = NO_LINES[Math.min(dodges, NO_LINES.length - 1)];
+    if (Q_LINES[dodges]) qText.textContent = Q_LINES[dodges];
+    yesBtn.style.transform = `scale(${Math.min(1 + dodges * 0.1, 1.7)})`;
+
+    if (!noBtn.classList.contains('flying')) {
+      const r = noBtn.getBoundingClientRect();
+      $('formOv').appendChild(noBtn);     // đưa ra ngoài thẻ kính để bay theo toàn màn hình
+      noBtn.classList.add('flying');
+      noBtn.style.left = r.left + 'px';
+      noBtn.style.top = r.top + 'px';
+      void noBtn.offsetWidth;
     }
-    $('err').textContent = '';
-    const to = 'Em iu';
-    data = { to, from: '', since: '', msg: DEFAULT_MSG };
-    showEnvelope();
+    const bw = noBtn.offsetWidth, bh = noBtn.offsetHeight, yr = yesBtn.getBoundingClientRect();
+    let x, y, tries = 0;
+    do {
+      x = rand(12, Math.max(13, innerWidth - bw - 12));
+      y = rand(12, Math.max(13, innerHeight - bh - 12));
+      tries++;
+    } while (tries < 30 && x < yr.right + 20 && x + bw > yr.left - 20 && y < yr.bottom + 20 && y + bh > yr.top - 20);
+    noBtn.style.left = x + 'px';
+    noBtn.style.top = y + 'px';
   }
-  $('okBtn').addEventListener('click', submitName);
-  $('fTo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitName(); } });
+  noBtn.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') dodge(); });
+  noBtn.addEventListener('pointerdown', e => { e.preventDefault(); dodge(); });
+  noBtn.addEventListener('click', e => { e.preventDefault(); dodge(); });
+
+  function burstHearts() {
+    const r = yesBtn.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (let i = 0; i < 16; i++) {
+      const s = document.createElement('span');
+      s.className = 'pop'; s.textContent = pick(['💖', '💕', '🌸', '💗']);
+      s.style.left = cx + 'px'; s.style.top = cy + 'px';
+      s.style.setProperty('--dx', rand(-160, 160) + 'px'); s.style.setProperty('--dy', rand(-200, -30) + 'px');
+      document.body.appendChild(s); setTimeout(() => s.remove(), 1200);
+    }
+  }
+  yesBtn.addEventListener('click', () => {
+    burstHearts();
+    data = { to: 'Em iu', from: '', since: '', msg: DEFAULT_MSG };
+    showEnvelope();
+  });
 
   function showEnvelope() {
     $('formOv').classList.add('hide');
-    $('envTitle').textContent = 'Có quà dành cho ' + data.to;
+    $('envTitle').textContent = 'Có quà cho ' + data.to.toLowerCase() + ' 🎁';
     $('envWrap').classList.remove('open');
     setTimeout(() => $('envOv').classList.remove('hide'), 400);
   }
